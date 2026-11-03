@@ -23,6 +23,10 @@ vendors, cows, boats on Ulsoor Lake and birds overhead.
 **Atmosphere** — a full day/night cycle, a monsoon toggle with rain and thunder, and
 positional audio (traffic, horns, birds, a temple bell, tennis).
 
+## Also in this repo: Digital Slider
+
+[`digital-slider/`](digital-slider/) is a separate project: *Where does Bengaluru end?*, a web simulation of a sliding-screen museum timeline told by Kempegowda's watchtower. Open `digital-slider/index.html` in a browser.
+
 ## Running it
 
 Open `index.html` in any modern browser. It needs an internet connection the first
