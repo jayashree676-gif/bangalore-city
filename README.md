@@ -25,7 +25,12 @@ positional audio (traffic, horns, birds, a temple bell, tennis).
 
 ## Also in this repo: Digital Slider
 
-[`digital-slider/`](digital-slider/) is a separate project: *Where does Bengaluru end?*, a web simulation of a sliding-screen museum timeline told by Kempegowda's watchtower. Open `digital-slider/index.html` in a browser.
+*Where does Bengaluru end?* is a web simulation of a sliding-screen museum timeline told by Kempegowda's watchtower. It comes in two versions:
+
+- [`digital-slider/`](digital-slider/): the 2D version
+- [`digital-slider-3d/`](digital-slider-3d/): the 3D version, a miniature world where the frame builds each memory as it slides over it
+
+Open either folder's `index.html` in a browser.
 
 ## Running it
 
