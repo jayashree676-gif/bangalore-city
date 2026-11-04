@@ -25,10 +25,11 @@ positional audio (traffic, horns, birds, a temple bell, tennis).
 
 ## Also in this repo: Digital Slider
 
-*Where does Bengaluru end?* is a web simulation of a sliding-screen museum timeline told by Kempegowda's watchtower. It comes in two versions:
+*Where does Bengaluru end?* is a web simulation of a sliding-screen museum timeline told by Kempegowda's watchtower. It comes in three versions:
 
 - [`digital-slider/`](digital-slider/): the 2D version
 - [`digital-slider-3d/`](digital-slider-3d/): the 3D version, a miniature world where the frame builds each memory as it slides over it
+- [`digital-slider-figma/`](digital-slider-figma/): the Figma build, the final UI with 3D scenes, Lenis and GSAP ScrollTrigger. [Live site](https://jayashree676-gif.github.io/bangalore-city/digital-slider-figma/)
 
 Open either folder's `index.html` in a browser.
 

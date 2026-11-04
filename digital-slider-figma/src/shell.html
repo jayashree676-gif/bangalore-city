@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Where does Bengaluru Ends?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Sans:wght@600&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/@fiddle-digital/string-tune@1.2.7/dist/index.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.27/dist/lenis.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js" defer></script>
+<style>
+/* Noe Display is a licensed font and is not bundled. If "Noe Display Medium" is installed it is used.
+   Otherwise Gloock (Google Fonts) stands in, then Georgia. To use the licensed file, add its URL to the src below. */
+@font-face{font-family:"Noe Display";font-weight:500;font-display:swap;src:local("Noe Display Medium"),local("NoeDisplay-Medium")}
+:root{
+  --bg:#eaeaea;--ink:#1e1e1e;--muted:#8e8e8e;--rule:#bebec0;--bar:#f0f0f0;--glassbase:#d9d9d9;
+  --display:"Noe Display","Gloock",Georgia,serif;
+  --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --kicker:"Noto Sans",Inter,system-ui,sans-serif;
+  --ease:cubic-bezier(.76,0,.24,1);--out:cubic-bezier(.16,1,.3,1);
+  --s:1;--dx:0px;
+}
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.-s-word{display:inline-block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- 1440 x 900 artboard, centred and scaled down to fit (never up) ---------- */
+.art{position:fixed;left:50%;top:50%;width:1440px;height:900px;transform:translate(-50%,-50%) scale(var(--s));transform-origin:50% 50%}
+#artB{z-index:1;pointer-events:none;background:var(--bg)}
+#artF{z-index:3;pointer-events:none}
+#artF .ui{pointer-events:auto}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;display:block;touch-action:none;outline:none;z-index:2}
+
+/* grain: fine monochrome turbulence in the band between the dividers (stand-in for the Figma noise image) */
+.noise{position:absolute;left:0;top:144px;width:1440px;height:640px;mix-blend-mode:overlay;opacity:.32;background-image:var(--grain);background-size:180px 180px}
+
+/* ---------- sculpted glass ---------- */
+.glass{position:relative;background:rgba(255,255,255,.01);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  box-shadow:0 12.52px 12px rgba(0,0,0,.035),0 100px 80px rgba(0,0,0,.07),inset 0 1px 1px rgba(255,255,255,.7),inset 0 -1px 2px rgba(0,0,0,.04)}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:var(--bw,1px);pointer-events:none;
+  background:linear-gradient(180deg,#fff 0%,#808080 36%,#fff 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 60% at 50% 0%,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),var(--grain);background-size:100% 100%,120px 120px;opacity:.28;mix-blend-mode:soft-light}
+/* glass CTA hover: fill black, type white */
+.gbtn{transition:background .25s,color .25s,box-shadow .25s}
+.gbtn:hover,.gbtn:focus-visible,.gbtn.on{background:var(--ink);color:#fff}
+.gbtn:hover svg path,.gbtn:focus-visible svg path,.gbtn:hover svg use,.gbtn.on svg path{fill:#fff}
+.gbtn:hover::after,.gbtn.on::after{opacity:0}
+
+/* ---------- header ---------- */
+.title{position:absolute;left:60px;top:28px;width:760px;height:48px;font-family:var(--display);font-weight:500;font-size:40px;line-height:48px;color:var(--ink);white-space:nowrap}
+.sub{position:absolute;left:60px;top:84px;width:412px;height:24px;font-style:italic;font-weight:400;font-size:20px;line-height:24px;color:var(--muted);white-space:nowrap}
+.hudb{position:absolute;left:900px;top:24px;width:480px;height:48px;display:flex;justify-content:flex-end;gap:12px}
+.pill{height:48px;width:132px;border-radius:999px;padding:12px 16px;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:16px;line-height:20px;color:var(--ink);white-space:nowrap;
+  transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px))}
+.pill.q{width:48px;padding:0}
+.rule{position:absolute;left:60px;width:1320px;height:2px;background:var(--rule)}
+
+/* ---------- the slider card (the frame) ---------- */
+.stage{position:absolute;left:476px;top:132px;width:488px;height:664px}
+.cardHome{position:absolute;left:52px;top:0;width:384px;height:664px}
+.card{position:absolute;inset:0;border-radius:32px;transform:translateX(var(--dx));transition:opacity .6s var(--out)}
+#cardB{position:fixed;left:0;top:0;width:384px;height:664px;z-index:1;pointer-events:none;border-radius:32px;--bw:2px;transform-origin:0 0;
+  box-shadow:0 13.36px 12.8px rgba(0,0,0,.035),0 106.67px 85.33px rgba(0,0,0,.07),inset 0 2px 1px rgba(255,255,255,.85),inset 0 -2px 3px rgba(0,0,0,.04);
+  -webkit-backdrop-filter:blur(4.28px);backdrop-filter:blur(4.28px)}
+#cardB::after{opacity:.3}
+#cardF{pointer-events:none}
+.slot{position:absolute;left:16px;top:167px;width:352px;height:331px;pointer-events:none}
+.crow{position:absolute;left:16px;top:600px;width:352px;height:48px;display:flex;gap:12px;justify-content:space-between;align-items:center;pointer-events:auto}
+.vr{width:48px;height:48px;flex:none;border-radius:20px;padding:8px;background:#000;display:grid;place-items:center;transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px));transition:background .25s}
+.vr svg{width:32px;height:32px;display:block}
+.read{width:292px;height:48px;flex:none;border-radius:16px;padding:12px 20px;background:#000;color:#fff;font-weight:600;font-size:14px;line-height:17px;display:flex;align-items:center;justify-content:center;white-space:pre;
+  transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px));transition:background .25s}
+.read:hover,.vr:hover{background:#333}
+.handle{position:absolute;top:292px;width:40px;height:100px;border-radius:999px;display:grid;place-items:center;--bw:2px;transform:translateX(var(--dx));touch-action:none;cursor:grab}
+.handle svg{width:40px;height:40px;display:block}
+#hL{left:0}#hL svg{transform:scaleX(-1)}
+#hR{left:448px}
+body:not(.dragged) .handle svg{animation:nudge 1.4s ease-in-out infinite}
+body:not(.dragged) #hL svg{animation-name:nudgeL}
+@keyframes nudge{50%{transform:translateX(4px)}}
+@keyframes nudgeL{0%,100%{transform:scaleX(-1)}50%{transform:scaleX(-1) translateX(4px)}}
+
+/* ---------- small uppercase labels (Noto Sans SemiBold 14 / 18.9, 1.68px tracking) ---------- */
+.kick{font-family:var(--kicker);font-weight:600;font-size:14px;line-height:18.9px;letter-spacing:1.68px;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- left: chapter ---------- */
+.left{position:absolute;left:60px;top:324px;width:355px;height:252px;display:flex;flex-direction:column;gap:20px}
+.left .top{width:320px;display:flex;flex-direction:column;gap:16px}
+.left .kick{height:20px;white-space:nowrap}
+.yearbox{height:120px;width:240px;overflow:visible}
+.year{font-family:var(--display);font-weight:500;font-size:120px;line-height:152px;height:152px;color:var(--ink);white-space:nowrap;margin:0}
+.ttl{font-style:italic;font-weight:400;font-size:28px;line-height:36px;min-height:36px;width:355px;color:var(--ink)}
+.edge{font-size:20px;line-height:24px;color:var(--muted);white-space:nowrap}
+
+/* ---------- right: the Watchtower ---------- */
+.right{position:absolute;left:1025px;top:333px;width:355px;height:270px;display:flex;flex-direction:column;gap:4px}
+.mascot{width:94px;height:94px;display:block;cursor:pointer;border-radius:12px}
+.mascot img{width:94px;height:94px;display:block;object-fit:contain}
+.mascot.jump img{animation:jump .7s cubic-bezier(.2,1.5,.4,1)}
+@keyframes jump{30%{transform:translateY(-14px) scale(1.04,.96)}60%{transform:none}}
+.right .say{display:flex;flex-direction:column;gap:16px}
+.right .kick{height:20px}
+.quote{font-style:italic;font-weight:400;font-size:28px;line-height:34px;color:var(--ink);min-height:136px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:-4px}
+.chip{height:44px;padding:0 16px;border-radius:999px;font-weight:500;font-size:14px;display:inline-flex;align-items:center}
+.chip.dark{background:var(--ink);color:#fff}
+
+/* reveal for the story blocks */
+.blk .-s-word,.blk .-s-char{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(6px);transition:opacity .7s var(--out),transform .9s var(--out),filter .7s var(--out)}
+.blk .-s-word{transition-delay:calc(var(--base,0s) + var(--word-index,0) * 28ms)}
+.blk .-s-char{transition-delay:calc(var(--base,0s) + var(--char-index,0) * 55ms)}
+.blk .fade{opacity:0;transform:translateY(10px);transition:opacity .7s var(--out),transform .9s var(--out);transition-delay:var(--base,0s)}
+.blk.in .-s-word,.blk.in .-s-char{opacity:1;transform:none;filter:none}
+.blk.in .fade{opacity:1;transform:none}
+.blk:not(.in) .-s-word,.blk:not(.in) .-s-char,.blk:not(.in) .fade{transition-duration:.3s;transition-delay:0s}
+
+/* ---------- bottom: previous / passport / next ---------- */
+.nav{position:absolute;top:824px;width:275px;height:48px;display:flex;align-items:center;gap:7px;cursor:pointer;text-align:left}
+.nav .txt{width:220px;display:flex;flex-direction:column;gap:4px;padding-top:0}
+.nav .txt .kick{height:20px}
+.nav .txt span{font-size:12px;line-height:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#navN{left:1105px;justify-content:flex-end}#navN .txt{text-align:right}
+#navP{left:60px}
+.arrow{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:none;transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px))}
+.arrow svg{width:24px;height:24px;display:block;transition:transform .4s var(--out)}
+#navP .arrow svg{transform:scaleX(-1)}
+.nav:hover .arrow{background:var(--ink)}.nav:hover .arrow svg use{fill:#fff}
+.nav:hover .arrow::after{opacity:0}
+.nav.off{opacity:.35;pointer-events:none}
+
+.pass{position:absolute;left:377px;top:804px;width:687px;height:82px;display:flex;align-items:center;gap:16px;padding:12px 12px 12px 16px;background:var(--bar);border:1px solid var(--rule);border-radius:40px;white-space:nowrap}
+.cnt{width:53px;height:48px;display:flex;flex-direction:column;justify-content:center;flex:none}
+.cnt b{font-weight:700;font-size:24px;line-height:28px;height:28px}.cnt b small{font-weight:500;font-size:16px}
+.cnt em{font-style:normal;font-weight:700;font-size:14px;line-height:20px}
+.stamps{display:flex;align-items:center;list-style:none}
+.stamps li{display:flex;align-items:center}
+.stamps .ln{width:20px;height:1px;background:var(--rule);display:block}
+.st{position:relative;width:56px;height:56px;border-radius:999px;border:1px solid var(--rule);font-weight:700;font-size:16px;line-height:20px;display:grid;place-items:center;color:var(--ink);transition:transform .35s var(--out),border-color .3s,background .25s,color .25s}
+.st:hover{transform:translateY(-3px)}
+.st.here:not(.got):not(.last){border-color:var(--ink)}
+.st.got{border:0;--bw:1.17px;padding:8px;box-shadow:0 12.52px 10px rgba(0,0,0,.1),0 100px 80px rgba(0,0,0,.2),inset 0 1px 1px rgba(255,255,255,.7)}
+.st.got.pop{animation:stampIn .7s cubic-bezier(.2,1.6,.4,1)}
+.st.got img{width:40px;height:40px;display:block;position:relative;z-index:1;object-fit:contain}
+.st.last{background:var(--ink);color:#fff;border-color:var(--rule)}
+.st.last.locked::before{content:"";position:absolute;right:-2px;top:-2px;width:16px;height:16px;border-radius:50%;background:var(--bar) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4.5' y='7' width='7' height='5.5' rx='1.2' fill='%231e1e1e'/%3E%3Cpath d='M6 7V5.8a2 2 0 0 1 4 0V7' fill='none' stroke='%231e1e1e' stroke-width='1.3'/%3E%3C/svg%3E") center/16px;border:1px solid var(--rule)}
+@keyframes stampIn{from{transform:scale(1.7) rotate(-18deg);opacity:0}}
+
+/* states */
+.navrow{display:contents}
+body.moving .blk{pointer-events:none}
+body.vrmode #artF>*:not(#vrBar),body.vrmode #cardB,body.building #cardB,body.building .stage,body.building .right,body.building .left,body.building .nav{opacity:0;pointer-events:none}
+#artF>*{transition:opacity .5s}
+#vrBar{position:absolute;left:50%;top:812px;transform:translateX(-50%);display:flex;gap:12px;align-items:center;opacity:0;pointer-events:none}
+body.vrmode #vrBar{opacity:1;pointer-events:auto}
+#vrBar .pill{width:auto;padding:12px 20px}
+#vrBar .tip{font-size:14px;color:var(--muted)}
+
+/* Lenis */
+html.lenis,html.lenis body{height:auto}
+.lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
+.lenis [data-lenis-prevent]{overscroll-behavior:contain}
+.lenis.lenis-smooth iframe{pointer-events:none}
+
+/* help dialog */
+dialog.help{margin:auto;width:min(520px,92vw);border:1px solid var(--rule);border-radius:32px;background:var(--bar);color:var(--ink);padding:32px 32px 28px}
+dialog.help::backdrop{background:rgba(234,234,234,.6);backdrop-filter:blur(6px)}
+dialog.help h2{font-family:var(--display);font-weight:500;font-size:32px;line-height:38px;margin:10px 0 14px}
+dialog.help ul{padding-left:18px;font-size:15px;line-height:1.55;color:#333}dialog.help li{margin-bottom:6px}
+dialog.help .row{display:flex;justify-content:flex-end;margin-top:18px}
+
+/* ---------- chapter page (the frame opens up) ---------- */
+.lo{position:fixed;inset:0;z-index:30;background:var(--bg);visibility:hidden}
+.lo.show{visibility:visible}.lo.anim{transition:clip-path 1.05s var(--ease)}
+.lo-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}
+.lo-scroll::-webkit-scrollbar{display:none}
+.lo-inner{opacity:0;transform:translateY(60px);transition:opacity .7s .5s,transform 1.1s .45s var(--out)}
+.lo.open .lo-inner{opacity:1;transform:none}
+.lo-close{position:fixed;top:24px;right:60px;z-index:3;height:48px;padding:12px 20px;border-radius:999px;font-weight:500;font-size:16px;opacity:0;transition:opacity .4s .6s;transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px))}
+.lo.open .lo-close{opacity:1}
+.lo-progress{position:fixed;left:0;right:0;top:0;height:3px;z-index:3}.lo-progress i{display:block;height:100%;width:0;background:var(--ink)}
+.lo-hero{position:relative;height:100vh;overflow:hidden}
+.lo-hero img{position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover;will-change:transform}
+.lo-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(234,234,234,0) 45%,rgba(234,234,234,.95))}
+.lo-hero-txt{position:absolute;left:60px;bottom:9vh;z-index:1;max-width:min(64vw,1000px)}
+.lo-hero-txt .kick{margin-bottom:18px}
+.lo-year{font-family:var(--display);font-weight:500;font-size:clamp(80px,10vw,160px);line-height:.9;margin-bottom:10px}
+.lo-title{font-style:italic;font-weight:400;font-size:clamp(28px,3vw,48px);line-height:1.1}
+.lo-title .-s-word{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(10px);transition:opacity 1s var(--out),transform 1.2s var(--out),filter 1s var(--out);transition-delay:calc(.6s + var(--word-index,0) * 60ms)}
+.lo.open .lo-title .-s-word{opacity:1;transform:none;filter:none}
+.lo-scrollcue{position:absolute;right:60px;bottom:9vh;z-index:1;animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{50%{transform:translateY(8px)}}
+.lo-label{margin-bottom:30px}
+.lo-narr{padding:20vh 60px 14vh;max-width:1500px}
+.scrub{font-family:var(--display);font-weight:500;font-size:clamp(32px,3.6vw,60px);line-height:1.12;margin-bottom:6vh}
+.scrub .-s-word{color:rgba(30,30,30,.13)}
+.scrub .-s-word.lit{color:var(--ink)}
+.lo-nums{display:grid;grid-template-columns:repeat(3,1fr);margin:0 60px;border-top:2px solid var(--rule);border-bottom:2px solid var(--rule)}
+.lo-num{padding:7vh 2vw 7vh 0}.lo-num+.lo-num{border-left:2px solid var(--rule);padding-left:2vw}
+.lo-num b{display:block;font-family:var(--display);font-weight:500;font-size:clamp(60px,8vw,140px);line-height:1;font-variant-numeric:tabular-nums}
+.lo-num b small{font-size:.36em;margin-left:.15em;color:var(--muted)}
+.lo-num span{font-size:16px;color:var(--muted)}
+.lo-strip{padding:0;overflow:hidden}
+.lo-strip .lo-label{margin:0 60px 30px;display:flex;justify-content:space-between}
+.lo-strip{height:100vh;display:flex;flex-direction:column;justify-content:center}
+.lo-track{display:flex;gap:24px;padding:0 60px;will-change:transform;width:max-content}
+.lo-card{flex:none;width:clamp(260px,30vw,460px);height:clamp(320px,54vh,540px);border-radius:32px;overflow:hidden;position:relative;transform:skewX(var(--sk,0deg));user-select:none;--bw:2px}
+.lo-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.lo-card .cap{position:absolute;left:20px;bottom:20px;font-size:12px;color:var(--ink);background:rgba(255,255,255,.7);padding:6px 12px;border-radius:999px;z-index:1}
+.lo-card.txt{padding:34px;display:flex;flex-direction:column;justify-content:space-between}
+.lo-card.txt q{font-style:italic;font-size:clamp(22px,2vw,30px);line-height:1.2;quotes:none}
+.lo-card.txt .big{font-family:var(--display);font-weight:500;font-size:clamp(70px,8vw,130px);line-height:1}
+.lo-card.txt .big small{font-size:.36em;color:var(--muted)}
+.lo-card.txt p{font-size:16px;line-height:1.5;color:#555}
+.lo-card.txt img.m{position:static;width:94px;height:94px;object-fit:contain}
+.lo-end{padding:16vh 60px 14vh;display:flex;flex-direction:column;gap:30px}
+.lo-end h2{font-family:var(--display);font-weight:500;font-size:clamp(44px,5.4vw,90px);line-height:1;max-width:15ch}
+.lo-end .row{display:flex;gap:12px;flex-wrap:wrap}
+.lo-next{margin-top:8vh;display:flex;align-items:center;justify-content:space-between;gap:30px;padding:5vh 0 0;border-top:2px solid var(--rule);text-align:left;width:100%}
+.lo-next .kick{margin-bottom:12px}
+.lo-next span{font-style:italic;font-size:clamp(28px,3vw,48px);line-height:1.1}
+.lo-next .arrow{width:72px;height:72px}.lo-next .arrow svg{width:32px;height:32px}
+.lo-next:hover .arrow svg{transform:translateX(6px)}
+
+/* buttons used in overlays */
+.cta,.ghost{height:48px;padding:12px 20px;border-radius:16px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:10px;transition:background .3s,color .3s;transform:translate(calc(var(--magnetic-x,0) * 1px),calc(var(--magnetic-y,0) * 1px))}
+.cta{background:#000;color:#fff}.cta:hover{background:#333}
+.ghost{border-radius:999px;font-weight:500;font-size:16px}
+.ghost:hover,.ghost:focus-visible{background:var(--ink);color:#fff}
+.ghost:hover::after{opacity:0}
+.cta[disabled]{opacity:.3;pointer-events:none}
+
+/* ---------- 3D builder (2037) ---------- */
+#bpanel{position:absolute;left:60px;top:170px;width:400px;opacity:0;pointer-events:none;transform:translateX(-20px);transition:opacity .6s var(--out),transform .8s var(--out)}
+body.building #bpanel{opacity:1;transform:none;pointer-events:auto}
+#bpanel h2{font-family:var(--display);font-weight:500;font-size:56px;line-height:1;margin:12px 0}
+#bpanel p{font-size:16px;line-height:1.5;color:#555}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 18px}
+.meter span{display:flex;justify-content:space-between;font-family:var(--kicker);font-weight:600;font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.meter span em{font-style:normal;color:var(--ink)}
+.meter i{display:block;height:6px;border-radius:3px;background:rgba(30,30,30,.08);margin-top:8px;overflow:hidden}
+.meter i b{display:block;height:100%;border-radius:3px;background:var(--ink);transition:width .6s var(--out)}
+.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tool{border-radius:16px;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600;transition:transform .25s var(--out),background .2s;--bw:1px}
+.tool i{width:24px;height:24px;border-radius:8px;display:block;position:relative;z-index:1}
+.tool small{font-size:10px;font-weight:500;color:var(--muted)}
+.tool:hover,.tool.on{background:var(--ink);color:#fff}.tool.on{transform:translateY(-4px)}.tool:hover small{color:#bbb}.tool.on small{color:#bbb}
+.bfoot{display:flex;gap:10px;align-items:center;margin-top:20px}
+.budget{flex:1;font-weight:500;font-size:14px}.budget b{font-family:var(--display);font-size:32px;font-weight:500;margin-right:6px}
+#bres{position:fixed;z-index:40;inset:0;display:grid;place-items:center;background:rgba(234,234,234,.7);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .6s}
+#bres.show{opacity:1;pointer-events:auto}
+.res{width:min(880px,92vw);display:grid;grid-template-columns:1.1fr 1fr;gap:34px;align-items:center;background:var(--bar);border:1px solid var(--rule);border-radius:40px;padding:30px}
+.res img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:24px;background:#e2e2e2}
+.res h5{font-family:var(--display);font-weight:500;font-size:clamp(40px,4.6vw,68px);line-height:1;margin:14px 0 12px}
+.res p{font-size:20px;line-height:1.3;font-style:italic}
+.res .facts{font-size:14px;color:#555;line-height:1.6;margin:14px 0 18px}
+.res .row{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:760px){.res{grid-template-columns:1fr}}
+
+/* panel, toast, cursor */
+.panel{position:fixed;z-index:45;top:0;right:0;bottom:0;width:460px;max-width:92vw;background:var(--bar);border-left:1px solid var(--rule);transform:translateX(105%);transition:transform .6s var(--ease);overflow:auto;padding:36px 36px 44px}
+.panel.open{transform:none}
+.panel h3{font-family:var(--display);font-weight:500;font-size:40px;line-height:1.05;margin:12px 0}
+.panel h4{margin:26px 0 8px}
+.panel p,.panel li{font-size:15px;line-height:1.55;color:#333}.panel ul{padding-left:18px}.panel li{margin-bottom:6px}
+.panel .close{position:absolute;top:20px;right:20px;width:48px;height:48px;border-radius:50%;font-size:16px}
+.panel .cta{margin-top:12px}
+.toast{position:fixed;z-index:58;left:50%;top:calc(50% - 450px * var(--s) + 30px * var(--s));transform:translate(-50%,-10px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;line-height:18px;font-weight:500;opacity:0;transition:.35s;pointer-events:none;max-width:min(290px,90vw);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.cur,.ring{position:fixed;left:0;top:0;z-index:80;pointer-events:none}
+.cur{width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--ink)}
+.ring{width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:1px solid rgba(30,30,30,.3);display:grid;place-items:center;transition:width .4s var(--out),height .4s var(--out),margin .4s var(--out),background .3s,border-color .3s}
+.ring span{font-size:12px;font-weight:600;color:#fff;opacity:0;transition:opacity .2s;white-space:nowrap}
+.ring.lab{width:76px;height:76px;margin:-38px 0 0 -38px;background:var(--ink);border-color:transparent}.ring.lab span{opacity:1}
+@media (hover:none){.cur,.ring{display:none}}
+
+/* loader, intro, mission, fallback */
+#loader{position:fixed;inset:0;z-index:90;background:var(--ink);color:var(--bg);display:flex;align-items:flex-end;justify-content:space-between;padding:60px;clip-path:inset(0 0 0 0);transition:clip-path 1.1s var(--ease)}
+#loader.done{clip-path:inset(0 0 100% 0)}
+#loader .n{font-family:var(--display);font-weight:500;font-size:clamp(100px,16vw,260px);line-height:.8}
+#loader .t{color:#aaa;max-width:300px}
+#loader .bar{position:absolute;left:60px;right:60px;top:50%;height:2px;background:rgba(255,255,255,.12)}#loader .bar i{display:block;height:100%;width:0;background:var(--bg)}
+#intro{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:clip-path 1.1s var(--ease);clip-path:inset(0 0 0 0)}
+#intro.gone{clip-path:inset(0 0 100% 0);pointer-events:none}
+.intro-box{max-width:780px;padding:40px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.intro-box img{width:140px;height:140px;object-fit:contain;margin-bottom:18px}
+.intro-box .q{font-style:italic;font-size:clamp(28px,3.2vw,44px);line-height:1.15;min-height:2.3em}
+.intro-box .kick{margin:20px 0 22px}
+.intro-box p{font-size:18px;line-height:1.55;color:#555;max-width:520px}
+.intro-box .cta{margin-top:28px;opacity:0;transition:opacity .6s,background .3s}.intro-box .cta.show{opacity:1}
+#mission{position:fixed;inset:0;z-index:68;display:grid;place-items:center;background:rgba(234,234,234,.5);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity .6s}
+#mission.show{opacity:1;pointer-events:auto}
+.mis{width:min(900px,92vw);background:var(--bar);border:1px solid var(--rule);border-radius:40px;padding:40px 44px}
+.mis-top{display:flex;gap:26px;align-items:flex-start}.mis-top img{width:94px;height:94px;object-fit:contain;flex:none}
+.mis h2{font-family:var(--display);font-weight:500;font-size:clamp(34px,3.6vw,52px);line-height:1.02;margin:10px 0 12px}
+.mis p{font-size:16px;line-height:1.55;color:#555;max-width:60ch}
+.mis .stamps{margin:28px 0 26px}
+.mis .row{display:flex;gap:10px;flex-wrap:wrap}
+#nogl{position:fixed;inset:0;z-index:95;display:none;place-items:center;background:var(--bg);text-align:center;padding:40px}
+#nogl h2{font-family:var(--display);font-weight:500;font-size:48px;margin-bottom:10px}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+/* ---------- below 1100px: fluid, stacked layout (recommendation; the 1440 x 900 layout is authoritative) ---------- */
+@media (max-width:1099px){
+  html,body{height:auto;overflow-x:hidden;overflow-y:auto}
+  #artB{position:fixed;inset:0;left:0;top:0;width:auto;height:auto;transform:none}
+  .noise{top:0;width:100%;height:100%}
+  #gl{pointer-events:none}
+  #artF{position:relative;left:auto;top:auto;transform:none;width:auto;height:auto;max-width:760px;margin:0 auto;padding:32px 40px 56px;display:flex;flex-direction:column;gap:28px}
+  #artF>*{position:relative!important;left:auto!important;top:auto!important}
+  .title{width:auto;height:auto;white-space:normal}
+  .sub{width:auto;height:auto;white-space:normal;margin-top:-20px}
+  .hudb{width:auto;height:auto;justify-content:flex-start;flex-wrap:wrap}
+  .rule{width:100%}
+  .left,.right{width:100%;height:auto}
+  .left .top{width:100%}
+  .stage{width:min(488px,100%);height:auto;margin:0 auto;aspect-ratio:488/664}
+  .cardHome{left:10.66%;width:78.69%;height:100%}
+  .card{border-radius:32px}
+  #cardF{pointer-events:auto;touch-action:pan-y}
+  .handle{top:44%}#hR{left:auto;right:0}
+  .quote{min-height:0}
+  .pass{order:9;width:100%;max-width:100%;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+  .pass::-webkit-scrollbar{display:none}
+  .pass .cnt,.pass .stamps{flex:none}
+  .navrow{order:10;display:flex;justify-content:space-between;gap:16px}
+  .nav{position:relative;left:auto!important;top:auto}
+  .nav{width:auto;max-width:48%}
+  #navN{left:auto}
+  .nav .txt{width:auto;min-width:0}
+  #bpanel{position:fixed!important;left:0!important;right:0;bottom:0;top:auto!important;width:auto;max-height:58vh;overflow:auto;background:var(--bar);border-top:1px solid var(--rule);border-radius:32px 32px 0 0;padding:24px;z-index:9}
+  body.building #bpanel{transform:none}
+  #vrBar{position:fixed!important;left:50%!important;top:auto!important;bottom:24px}
+}
+@media (max-width:767px){
+  #artF{padding:24px 24px 48px;gap:24px}
+  .title{font-size:30px;line-height:36px}
+  .sub{font-size:16px;line-height:22px;margin-top:-16px}
+  .hudb{gap:8px;flex-wrap:nowrap}
+  .pill{width:auto;min-width:44px;height:44px;padding:10px 12px;font-size:13px;line-height:18px}
+  .pill.q{width:44px}
+  .year{font-size:88px;line-height:104px;height:104px}.yearbox{height:96px}
+  .ttl{font-size:22px;line-height:30px;width:100%}
+  .edge{font-size:16px;line-height:22px;white-space:normal}
+  .quote{font-size:22px;line-height:30px}
+  .stage{width:100%;aspect-ratio:auto;height:auto}
+  .cardHome{position:relative;left:auto;width:min(384px,100%);margin:0 auto;aspect-ratio:384/664;height:auto}
+  .handle{top:42%;width:40px;height:88px}
+  #hL{left:max(0px,calc(50% - 192px - 8px))}#hR{right:max(0px,calc(50% - 192px - 8px))}
+  .crow{left:4.2%;width:91.6%;top:auto;bottom:2.4%}
+  .read{width:auto;flex:1}
+  .nav .txt span{white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="art" id="artB" aria-hidden="true"><div class="noise" id="noise"></div></div>
+<div class="glass" id="cardB" aria-hidden="true"></div>
+<canvas id="gl" tabindex="-1" aria-label="3D diorama of the current year. Drag to move the frame along the timeline."></canvas>
+<main class="art" id="artF">
+  <h1 class="title">Where does Bengaluru Ends? </h1>
+  <p class="sub">500 years in 5.8 m · told by the Watchtower</p>
+  <nav class="hudb" aria-label="Experience controls">
+    <button class="pill glass gbtn ui" string="magnetic" string-strength="0.25" id="btnFollow" aria-pressed="false" data-cursor="Tour">Follow View</button>
+    <button class="pill glass gbtn ui" string="magnetic" string-strength="0.25" id="btnNotes" aria-controls="panel">How it works</button>
+    <button class="pill glass gbtn ui" string="magnetic" string-strength="0.25" id="btnShare">Share</button>
+    <button class="pill q glass gbtn ui" string="magnetic" string-strength="0.25" id="btnHelp" aria-haspopup="dialog" aria-label="Help">?</button>
+  </nav>
+  <div class="rule" id="rule1" style="top:142px" role="presentation"></div>
+
+  <section class="left blk" id="blkL" aria-live="polite">
+    <div class="top">
+      <p class="kick" id="kL" data-split="word" style="--base:0s">Chapter 01 - The FOUNDING</p>
+      <div class="yearbox"><h2 class="year" id="yL" data-split="char" style="--base:.05s">1537</h2></div>
+      <p class="ttl" id="tL" data-split="word" style="--base:.25s">A city drawn in mud</p>
+    </div>
+    <p class="edge fade" id="eL" style="--base:.5s">The Edge: A mud wall around 2.24Km</p>
+  </section>
+
+  <div class="stage" id="stage">
+    <div class="cardHome" id="cardHome">
+      <div class="card" id="cardF">
+        <div class="slot" id="slot" aria-hidden="true"></div>
+        <div class="crow">
+          <button class="vr ui" string="magnetic" string-strength="0.2" id="btnVR" aria-label="VR view: look around this diorama" data-cursor="VR"><svg viewBox="0 0 32 32" fill="none"><path d="M28.4225 14.0258C28.0409 13.0468 27.3828 12.3039 26.5394 11.7075C26.0929 9.08812 25.3339 7.30001 22.613 6.71318C18.2027 5.76182 13.7454 5.75768 9.33514 6.72837C6.6309 7.32348 5.91336 9.11159 5.46127 11.7033C4.74512 12.2377 4.09671 12.8328 3.72757 13.6958C2.33121 16.9641 2.30909 20.6853 3.68471 23.9701C4.30409 25.4503 5.63409 26.4307 7.16871 26.7607C8.14616 26.9706 9.04205 27.1556 10.0333 27.2909C11.5361 27.4967 13.0362 26.8656 13.8726 25.616C14.1505 25.2004 14.3731 24.7972 14.6994 24.4396C15.3132 23.7672 16.2796 23.5973 17.029 24.1994C17.358 24.4631 17.6456 24.7848 17.8364 25.1535C18.5995 26.6295 20.1576 27.5146 21.8485 27.302C22.9393 27.1653 23.9817 26.9554 25.0477 26.7013C26.7247 26.2995 27.9593 25.0886 28.5275 23.4855C29.6211 20.3981 29.6156 17.0814 28.4238 14.0258H28.4225ZM9.7347 9.32147C13.845 8.37149 18.1032 8.37287 22.2149 9.30766C22.5799 9.39051 22.8508 9.51892 23.1356 9.71637C23.3485 10.0326 23.5366 10.2908 23.6264 10.7575C18.5581 9.77989 13.451 9.78817 8.36598 10.7533C8.58166 9.92211 8.919 9.51063 9.73331 9.32285L9.7347 9.32147ZM26.0873 22.5673C25.8081 23.3571 25.2246 23.9895 24.3951 24.1855C23.4508 24.4079 22.5259 24.5901 21.5595 24.7213C21.0826 24.7862 20.5213 24.5418 20.2931 24.1579C19.942 23.5683 19.6102 23.0947 19.1207 22.5783C17.5156 20.8813 14.8556 20.7695 13.1496 22.3298C12.5537 22.8738 12.1223 23.462 11.7159 24.1538C11.4795 24.557 10.9278 24.7738 10.4536 24.713C9.46234 24.5887 8.51945 24.4092 7.5572 24.169C6.78713 23.977 6.22443 23.4068 5.95207 22.6639C5.01195 20.0984 5.03269 17.2706 6.10554 14.7548C6.35024 14.179 6.89358 13.7828 7.46457 13.6309C8.62037 13.3243 9.71811 13.149 10.9071 12.9833C14.3095 12.5069 17.6981 12.5042 21.1005 12.9833C22.3379 13.1587 23.502 13.3271 24.6965 13.682C25.3007 13.8615 25.7777 14.4041 26.0058 14.9896C26.957 17.4377 26.9625 20.0957 26.0901 22.5645L26.0873 22.5673Z" fill="white"/><rect x="8" y="16" width="4" height="1.33333" rx="0.666667" fill="white"/></svg></button>
+          <button class="read ui" string="magnetic" string-strength="0.15" id="btnRead" data-cursor="Read">✦  Read Full Story</button>
+        </div>
+      </div>
+    </div>
+    <button class="handle glass gbtn ui" id="hL" data-cursor="Drag" aria-label="Previous year (or drag the frame)"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M16.6665 14.8476L16.6665 25.9009C16.6665 26.9826 17.9473 27.5536 18.7519 26.8307L24.8926 21.3136C25.4448 20.8175 25.4455 19.9524 24.8942 19.4554L18.7535 13.9192C17.9493 13.1942 16.6665 13.7649 16.6665 14.8476Z" fill="black"/></svg></button>
+    <button class="handle glass gbtn ui" id="hR" data-cursor="Drag" aria-label="Next year (or drag the frame)"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M16.6665 14.8476L16.6665 25.9009C16.6665 26.9826 17.9473 27.5536 18.7519 26.8307L24.8926 21.3136C25.4448 20.8175 25.4455 19.9524 24.8942 19.4554L18.7535 13.9192C17.9493 13.1942 16.6665 13.7649 16.6665 14.8476Z" fill="black"/></svg></button>
+  </div>
+
+  <section class="right blk" id="blkR" aria-live="polite">
+    <button class="mascot fade ui" id="mascot" style="--base:.2s" data-cursor="Hi" aria-label="Ask the Watchtower for a hint"><img id="mascotImg" alt="The Watchtower" width="94" height="94"></button>
+    <div class="say">
+      <p class="kick fade" style="--base:.28s">The watch tower says</p>
+      <blockquote class="quote" id="qR" data-split="word" style="--base:.32s">“Before me, there was a chieftain with a plan. A mud fort, a market and a street for every trade.”</blockquote>
+      <div class="acts ui" id="actsR"></div>
+    </div>
+  </section>
+
+  <div class="rule" id="rule2" style="top:784px" role="presentation"></div>
+  <nav class="pass ui" id="pass" aria-label="Timeline">
+    <div class="cnt" aria-live="polite"><b id="sbN">1 <small>/ 7</small></b><em>Stamps</em></div>
+    <ol class="stamps" id="sbar"></ol>
+  </nav>
+  <nav class="navrow" aria-label="Step navigation">
+    <button class="nav ui blk" id="navP" data-cursor="Back">
+      <span class="arrow glass" string="magnetic" string-strength="0.2"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="#arrowF" fill="black"/></svg></span>
+      <span class="txt fade" style="--base:.6s"><span class="kick">Previous step</span><span id="pT">A sultan plants a garden</span></span>
+    </button>
+    <button class="nav ui blk" id="navN" data-cursor="Next">
+      <span class="txt fade" style="--base:.6s"><span class="kick">Next STOP</span><span id="nT">A sultan plants a garden</span></span>
+      <span class="arrow glass" string="magnetic" string-strength="0.2"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="#arrowF" fill="black"/></svg></span>
+    </button>
+  </nav>
+
+<div id="bpanel" class="ui">
+    <div class="kick">Chapter 08 - You build it</div>
+    <h2>Build the Bengaluru you want.</h2>
+    <p>Every block was unlocked by a stamp you earned. The lake is my gift. Grey blocks are today’s concrete. Pick a block, then tap the plot.</p>
+    <div class="meters"><div class="meter"><span>Green <em id="mg"></em></span><i><b id="bg"></b></i></div><div class="meter"><span>Liveable <em id="ml"></em></span><i><b id="bl"></b></i></div><div class="meter"><span>Innovation <em id="mi"></em></span><i><b id="bi"></b></i></div></div>
+    <div class="palette" id="bpal"></div>
+    <div class="bfoot"><div class="budget" id="bbud"></div><button class="ghost glass" string="magnetic" id="bReset">Reset</button><button class="cta" string="magnetic" id="bDone">✦  Name my city</button></div>
+    <div class="bfoot" style="margin-top:10px"><button class="ghost glass" string="magnetic" id="bExit">← Back to the timeline</button></div>
+  </div>
+
+  <div id="vrBar"><span class="tip">Drag to look around · scroll to zoom</span><button class="pill glass gbtn ui" id="vrExit">Exit VR view ✕</button></div>
+</main>
+
+<svg width="0" height="0" style="position:absolute"><defs><g id="arrowF"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.4306 18.4881C11.161 18.1736 11.1974 17.7001 11.5119 17.4306L17.8476 12L11.5119 6.56946C11.1974 6.29989 11.161 5.82641 11.4306 5.51192C11.7001 5.19743 12.1736 5.161 12.4881 5.43057L19.0452 11.0509C19.6272 11.5498 19.6272 12.4502 19.0452 12.9491L12.4881 18.5695C12.1736 18.839 11.7001 18.8026 11.4306 18.4881Z" fill="black"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18.75 12C18.75 12.4142 18.4142 12.75 18 12.75L5 12.75C4.58579 12.75 4.25 12.4142 4.25 12C4.25 11.5858 4.58579 11.25 5 11.25L18 11.25C18.4142 11.25 18.75 11.5858 18.75 12Z" fill="black"/></g></defs></svg>
+
+<dialog class="help" id="helpDlg" aria-labelledby="helpT">
+  <div class="kick">Help</div>
+  <h2 id="helpT">How to explore</h2>
+  <ul>
+    <li><b>Move the frame:</b> drag the 3D scene sideways, or use the side handles. Arrow keys work too.</li>
+    <li><b>Watch it build:</b> each year shows one object. When the frame lands on it, the whole scene assembles and starts to move.</li>
+    <li><b>Earn stamps:</b> every scene you restore adds a stamp to the timeline. 7 stamps open 2037.</li>
+    <li><b>Read Full Story</b> opens the chapter. <b>VR</b> lets you look around the scene.</li>
+    <li><b>Follow View</b> plays a guided tour.</li>
+  </ul>
+  <div class="row"><button class="cta" id="helpClose">Got it</button></div>
+</dialog>
+
+<div id="bres"><div class="res" id="resIn"></div></div>
+
+<div class="lo" id="lensOpen">
+  <div class="lo-progress"><i id="loProg"></i></div>
+  <div class="lo-scroll" id="loScroll"><div class="lo-inner" id="loInner"></div></div>
+  <button class="lo-close glass" string="magnetic" id="loClose">Back to the timeline ✕</button>
+</div>
+
+<aside class="panel" id="panel">
+  <button class="close glass" id="panelX" aria-label="Close">✕</button>
+  <div class="kick">How it works</div>
+  <h3>Where does Bengaluru end? Told by the Watchtower.</h3>
+  <p>A 5.8 m wall with a screen on rails, built here as a 3D world. The glass card is the frame. Outside it the timeline is a grey archive. Inside it, the past comes back in colour.</p>
+  <h4 class="kick">The interaction</h4>
+  <ul><li><b>Drag the frame.</b> Drag anywhere, or grab the side handles. Tap a handle to step one year.</li><li><b>One object per year.</b> Each stop shows a single hero piece. Slide the frame over it and the rest of the memory flies in and builds itself.</li><li><b>Earn stamps.</b> Every restored memory earns a stamp in the passport. 7 stamps unlock 2037, where you build the city you want.</li><li><b>Read the full story.</b> The frame opens into a scrolling chapter with rendered views of the diorama.</li><li><b>VR view.</b> Step inside the diorama and look around.</li><li><b>Follow View.</b> The Watchtower takes you through every stop on its own.</li></ul>
+  <h4 class="kick">Built with</h4>
+  <ul><li>Three.js for the 3D world, with a two-pass render for the grey and colour lens.</li><li>StringTune for smooth scrolling and magnetic buttons.</li></ul>
+  <h4 class="kick">Reviewer shortcut</h4>
+  <p>Want to see the ending without visiting all 7 memories?</p>
+  <button class="cta" id="btnUnlockAll">✦  Give me all 7 stamps</button>
+</aside>
+<div class="toast" id="toast"></div>
+
+<div id="mission"><div class="mis">
+  <div class="mis-top"><img class="mimg" alt=""><div><div class="kick">Your mission</div><h2>Bring 7 memories back. Unlock the future.</h2><p>Each year on my timeline shows one thing I remember. Slide the frame over it and the whole memory comes back together. Every memory you restore earns a stamp. With all 7, you build 2037.</p></div></div>
+  <div class="stamps" id="misRow"></div>
+  <div class="row"><button class="cta" string="magnetic" id="btnGo">✦  Start the journey</button></div>
+</div></div>
+
+<div id="intro"><div class="intro-box">
+  <img class="mimg" alt="The Watchtower">
+  <div class="q" id="introQ"></div>
+  <div class="kick">The Watchtower · Lalbagh · since the 1600s</div>
+  <p>500 years of my city, in 5.8 metres. Drag the frame along the timeline. Wherever it lands, the past comes back in colour.</p>
+  <button class="cta" string="magnetic" id="btnStart">✦  Climb up with me</button>
+</div></div>
+
+<div id="loader"><div class="bar"><i id="ldBar"></i></div><div class="t kick">Where does Bengaluru end?<br>Building 500 years in miniature</div><div class="n" id="ldN">0000</div></div>
+<div id="nogl"><div><h2>This needs WebGL</h2><p>Your browser couldn’t start the 3D world. Try a recent Chrome, Edge, Safari or Firefox.</p></div></div>
+<div class="cur" id="cur"></div><div class="ring" id="ring"><span id="ringT"></span></div>
+
+<script type="module">
+/*APP*/
+</script>
+</body>
+</html>
